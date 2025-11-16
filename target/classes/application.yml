@@ -1,0 +1,28 @@
+server:
+  port: ${PORT:8080} # important for cloud platforms like Render
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/goldbrokerdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:""}
+    driverClassName: ${DB_DRIVER:org.h2.Driver}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+goldbroker:
+  api:
+    base-url: ${METAL_API_BASE_URL:https://api.metalpriceapi.com/v1}
+    key: ${METAL_API_KEY:"aecf193b4bd1768a7649eef49c5bf0d7"}
+    base-currency: INR
+
+jwt:
+  secret: ${JWT_SECRET:"181545fg15f4zf2d1f5g45d1f51f5zd4f84f2z1f5zf5985454f8f5g4f8g5f4g8f5g4f8g5f4g8555jujk"}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
