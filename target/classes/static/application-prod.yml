@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://dpg-d4cng3c9c44c738u2kt0-a:5432/goldbroker_db
+    username: goldbroker_db_user
+    password: ZfU3CwhBDorsPGVsHEgLnqzLsruwVG7Z
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
