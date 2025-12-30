@@ -1,50 +1,36 @@
-# Gold Broker Spring Boot
+# 🏦 Gold Broker Backend Application
 
-Java Spring Boot application (Maven) to store and process precious metals data and execute buy/sell transactions using prices from a (mocked) Gold Broker API.
+A Spring Boot–based backend application designed to simulate a gold/metals trading platform.  
+The project provides secure REST APIs for user authentication, trading workflows, portfolio management, and transaction handling.
 
-## Tech stack
+This application was built to demonstrate backend engineering fundamentals, scalable architecture, and secure API design.
 
-- Java 17
-- Spring Boot 3 (Web, Data JPA, Validation)
-- H2 in-memory DB (dev)
-- Maven
+---
 
-## How to run
+## 📌 Project Overview
 
-```bash
-mvn spring-boot:run
-```
+The Gold Broker application serves as a backend system for a trading platform where users can:
+- Register and authenticate securely
+- View real-time gold price data
+- Execute buy/sell trades
+- Track portfolio holdings and transaction history
 
-The app starts on http://localhost:8080.
+The system follows a clean **3-layer architecture** and focuses on correctness, scalability, and maintainability.
 
-### Example requests
+---
 
-- Get mock latest price:
+## ✨ Features
 
-```bash
-curl "http://localhost:8080/api/prices/latest?metal=GOLD"
-```
+- User authentication & authorization using **JWT**
+- Secure REST APIs for trading operations
+- Portfolio and transaction management
+- Real-time metal price integration via external API
+- Clean separation of concerns using layered architecture
+- Centralized exception handling and validation
 
-- Buy 10 grams of GOLD:
+---
 
-```bash
-curl -X POST "http://localhost:8080/api/portfolio/buy?metal=GOLD&quantity=10"
-```
+## 🧱 Architecture
 
-- Sell 5 grams of GOLD:
+The application follows a **3-layer architecture**:
 
-```bash
-curl -X POST "http://localhost:8080/api/portfolio/sell?metal=GOLD&quantity=5"
-```
-
-- List holdings:
-
-```bash
-curl "http://localhost:8080/api/portfolio/holdings"
-```
-
-## Next steps
-
-- Replace `PriceService.fetchLatestPrice` with a real HTTP call to Gold Broker API.
-- Add authentication (JWT) and user-specific portfolios.
-- Add audit logs and scheduled price snapshots.
