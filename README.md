@@ -46,4 +46,3 @@ Recent improvements include:
 - Improved project structure for scalability
 - Prepared for Docker + PostgreSQL integration
 
-This reflects an upgraded and refined version of the original system.
