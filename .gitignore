@@ -1,4 +1,5 @@
 target/
 .idea/
 data/
+.vscode/
 .DS_Store
