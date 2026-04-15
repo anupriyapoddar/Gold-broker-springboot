@@ -34,3 +34,16 @@ The system follows a clean **3-layer architecture** and focuses on correctness, 
 
 The application follows a **3-layer architecture**:
 
+## 🔄 Project Evolution
+
+This project was initially developed as a Spring Boot backend for a metals trading platform.
+
+Due to a Git history issue during development, the repository was re-initialized to maintain a clean and production-ready structure.
+
+Recent improvements include:
+- Cleaned repository using proper `.gitignore`
+- Removed IDE-specific files (.idea, .vscode)
+- Improved project structure for scalability
+- Prepared for Docker + PostgreSQL integration
+
+This reflects an upgraded and refined version of the original system.
