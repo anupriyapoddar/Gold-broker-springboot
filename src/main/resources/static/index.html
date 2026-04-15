@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gold Broker – Metals Portfolio</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+        h1 {
+            margin-bottom: 1rem;
+        }
+        .card {
+            background: #111827;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        label {
+            display: block;
+            margin-top: 0.5rem;
+        }
+        select, input {
+            margin-top: 0.25rem;
+            padding: 0.4rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+            background: #020617;
+            color: #e5e7eb;
+            width: 100%;
+            max-width: 260px;
+        }
+        button {
+            margin-top: 0.75rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: #22c55e;
+            color: #0b1120;
+            font-weight: 600;
+        }
+        button.secondary {
+            background: #0ea5e9;
+        }
+        button.danger {
+            background: #ef4444;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .row > .card {
+            flex: 1 1 280px;
+        }
+        .error {
+            color: #f97316;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .success {
+            color: #4ade80;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .small {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: #22c55e;
+            color: #022c22;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.4rem 0.5rem;
+            border-bottom: 1px solid #1f2937;
+            text-align: left;
+        }
+        th {
+            background: #020617;
+            font-weight: 600;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .pnl-positive {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .pnl-negative {
+            color: #f97373;
+            font-weight: 600;
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 3px solid #1f2937;
+            border-top-color: #22c55e;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<h1>Gold Broker – Metals Portfolio</h1>
+
+<div class="row">
+    <!-- AUTH CARD -->
+    <div class="card">
+        <h2>Authentication</h2>
+
+        <div id="auth-status" class="small">
+            Not logged in
+        </div>
+
+        <label>
+            Email
+            <input type="email" id="auth-email" placeholder="you@example.com">
+        </label>
+        <label>
+            Password
+            <input type="password" id="auth-password" placeholder="••••••••">
+        </label>
+        <label>
+            Full name (for register)
+            <input type="text" id="auth-fullname" placeholder="Your Name">
+        </label>
+
+        <div id="auth-error" class="error"></div>
+
+        <button id="login-btn" class="secondary" disabled>Login</button>
+        <button id="register-btn" disabled>Register</button>
+        <button id="logout-btn" class="danger">Logout</button>
+
+        <div id="auth-message"></div>
+    </div>
+
+    <!-- LIVE PRICE CARD -->
+    <div class="card">
+        <h2>Live Metal Price</h2>
+        <label>
+            Metal
+            <select id="price-metal">
+                <option value="GOLD">GOLD (XAU)</option>
+                <option value="SILVER">SILVER (XAG)</option>
+                <option value="PLATINUM">PLATINUM (XPT)</option>
+                <option value="PALLADIUM">PALLADIUM (XPD)</option>
+            </select>
+        </label>
+        <button id="price-btn">Get Latest Price</button>
+        <div id="price-output"></div>
+        <div id="price-error" class="error"></div>
+        <div class="small">
+            Price is fetched via MetalpriceAPI and converted to <strong>INR per gram</strong>.
+        </div>
+    </div>
+
+    <!-- BUY/SELL CARD -->
+    <div class="card">
+        <h2>Buy / Sell</h2>
+        <div class="small">Requires login (JWT).</div>
+        <label>
+            Metal
+            <select id="trade-metal">
+                <option value="GOLD">GOLD</option>
+                <option value="SILVER">SILVER</option>
+                <option value="PLATINUM">PLATINUM</option>
+                <option value="PALLADIUM">PALLADIUM</option>
+            </select>
+        </label>
+        <label>
+            Quantity (grams)
+            <input type="number" id="trade-qty" step="0.01" min="0.01" value="1">
+        </label>
+        <button id="buy-btn" class="secondary">Buy</button>
+        <button id="sell-btn">Sell</button>
+        <div id="trade-msg"></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Portfolio Summary</h2>
+    <div class="small">Live PNL based on current INR/gram prices.</div>
+    <!-- <button id="summary-btn">Reload Summary</button> -->
+
+    <div id="summary-overview" style="margin-top:0.75rem;"></div>
+    <div id="summary-updated" class="small"></div>
+
+    <table id="summary-table">
+        <thead>
+        <tr>
+            <th>Metal</th>
+            <th class="text-right">Qty (g)</th>
+            <th class="text-right">Avg Cost (₹/g)</th>
+            <th class="text-right">Current (₹/g)</th>
+            <th class="text-right">Invested</th>
+            <th class="text-right">Current</th>
+            <th class="text-right">PNL</th>
+        </tr>
+        </thead>
+        <tbody id="summary-tbody">
+        <tr>
+            <td colspan="7" class="small">No data yet.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Your Holdings</h2>
+    <div class="small">Holdings are per logged-in user.</div>
+    <!-- <button id="refresh-holdings">Reload Holdings</button> -->
+
+    <table id="holdings-table">
+        <thead>
+        <tr>
+            <th>Metal</th>
+            <th class="text-right">Qty (g)</th>
+            <th class="text-right">Avg Cost (₹/g)</th>
+        </tr>
+        </thead>
+        <tbody id="holdings-tbody">
+        <tr>
+            <td colspan="3" class="small">Login to see your holdings.</td>
+        </tr>
+        </tbody>
+    </table>
+    <div id="holdings-updated" class="small"></div>
+</div>
+
+<script>
+    // ====== FORMAT HELPERS ======
+    function formatInr(value) {
+        if (value == null) return '-';
+        const num = Number(value);
+        if (isNaN(num)) return String(value);
+        return '₹ ' + num.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatNumber(value) {
+        if (value == null) return '-';
+        const num = Number(value);
+        if (isNaN(num)) return String(value);
+        return num.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatPercent(value) {
+        if (value == null) return '-';
+        const num = Number(value);
+        if (isNaN(num)) return String(value);
+        return num.toFixed(2) + '%';
+    }
+
+    function nowTimeString() {
+        return new Date().toLocaleTimeString();
+    }
+
+    // ====== AUTH STATE ======
+    let authToken = null;
+    let authEmail = null;
+
+    const authStatus = document.getElementById('auth-status');
+    const authMessage = document.getElementById('auth-message');
+    const authError = document.getElementById('auth-error');
+    const authEmailInput = document.getElementById('auth-email');
+    const authPasswordInput = document.getElementById('auth-password');
+    const authFullnameInput = document.getElementById('auth-fullname');
+    const loginBtn = document.getElementById('login-btn');
+    const registerBtn = document.getElementById('register-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const summaryBtn = document.getElementById('summary-btn');
+    const summaryOverview = document.getElementById('summary-overview');
+    const summaryDetailsTbody = document.getElementById('summary-tbody');
+    const summaryUpdated = document.getElementById('summary-updated');
+
+    const holdingsBtn = document.getElementById('refresh-holdings');
+    const holdingsTbody = document.getElementById('holdings-tbody');
+    const holdingsUpdated = document.getElementById('holdings-updated');
+
+    // ====== VALIDATION FOR AUTH FORM ======
+    function validateAuthForm() {
+        const email = authEmailInput.value.trim();
+        const password = authPasswordInput.value.trim();
+
+        authError.textContent = '';
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        let valid = true;
+
+        if (!emailRegex.test(email)) {
+            authError.textContent = 'Please enter a valid email address.';
+            valid = false;
+        } else if (password.length < 6) {
+            authError.textContent = 'Password must be at least 6 characters.';
+            valid = false;
+        }
+
+        loginBtn.disabled = !valid;
+        registerBtn.disabled = !valid;
+    }
+
+    authEmailInput.addEventListener('input', validateAuthForm);
+    authPasswordInput.addEventListener('input', validateAuthForm);
+
+    // ====== TOKEN STORAGE ======
+    function loadStoredToken() {
+        const storedToken = localStorage.getItem('jwt');
+        const storedEmail = localStorage.getItem('jwtEmail');
+        if (storedToken && storedEmail) {
+            authToken = storedToken;
+            authEmail = storedEmail;
+        }
+        updateAuthStatus();
+    }
+
+    function updateAuthStatus() {
+        if (authToken && authEmail) {
+            authStatus.innerHTML =
+                `Logged in as <strong>${authEmail}</strong><span class="badge">JWT</span>`;
+            logoutBtn.disabled = false;
+        } else {
+            authStatus.textContent = 'Not logged in';
+            logoutBtn.disabled = true;
+        }
+    }
+
+    function setAuth(token, email) {
+        authToken = token;
+        authEmail = email;
+        if (token && email) {
+            localStorage.setItem('jwt', token);
+            localStorage.setItem('jwtEmail', email);
+        } else {
+            localStorage.removeItem('jwt');
+            localStorage.removeItem('jwtEmail');
+        }
+        updateAuthStatus();
+    }
+
+    logoutBtn.addEventListener('click', () => {
+        setAuth(null, null);
+        authMessage.textContent = 'Logged out.';
+        authMessage.className = 'success';
+        holdingsTbody.innerHTML = `
+            <tr><td colspan="3" class="small">Login to see your holdings.</td></tr>
+        `;
+        holdingsUpdated.textContent = '';
+        summaryOverview.textContent = 'Login to see your portfolio summary.';
+        summaryDetailsTbody.innerHTML = `
+            <tr><td colspan="7" class="small">No data yet.</td></tr>
+        `;
+        summaryUpdated.textContent = '';
+    });
+
+    // ====== HELPER: fetchJson with optional auth header ======
+    async function fetchJson(url, options = {}) {
+        const headers = new Headers(options.headers || {});
+        if (!headers.has('Content-Type') && options.body) {
+            headers.set('Content-Type', 'application/json');
+        }
+        if (authToken) {
+            headers.set('Authorization', 'Bearer ' + authToken);
+        }
+
+        const res = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || res.statusText);
+        }
+        return res.json();
+    }
+
+    // ====== AUTH: REGISTER & LOGIN ======
+    registerBtn.addEventListener('click', async () => {
+        authMessage.textContent = '';
+        authMessage.className = '';
+        authError.textContent = '';
+
+        validateAuthForm();
+        if (loginBtn.disabled) {
+            return;
+        }
+
+        try {
+            const body = {
+                email: authEmailInput.value.trim(),
+                password: authPasswordInput.value.trim(),
+                fullName: authFullnameInput.value.trim()
+            };
+            const data = await fetchJson('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            setAuth(data.token, body.email);
+            authMessage.textContent = 'Registered & logged in.';
+            authMessage.className = 'success';
+            await loadHoldings();
+            await loadSummary();
+        } catch (err) {
+            authMessage.textContent = 'Register error: ' + err.message;
+            authMessage.className = 'error';
+        }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+        authMessage.textContent = '';
+        authMessage.className = '';
+        authError.textContent = '';
+
+        validateAuthForm();
+        if (loginBtn.disabled) {
+            return;
+        }
+
+        try {
+            const body = {
+                email: authEmailInput.value.trim(),
+                password: authPasswordInput.value.trim()
+            };
+            const data = await fetchJson('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+            setAuth(data.token, body.email);
+            authMessage.textContent = 'Login successful.';
+            authMessage.className = 'success';
+            await loadHoldings();
+            await loadSummary();
+        } catch (err) {
+            authMessage.textContent = 'Login error: ' + err.message;
+            authMessage.className = 'error';
+        }
+    });
+
+    // ====== PRICE UI ======
+    const priceBtn = document.getElementById('price-btn');
+    const priceMetal = document.getElementById('price-metal');
+    const priceOutput = document.getElementById('price-output');
+    const priceError = document.getElementById('price-error');
+
+    priceBtn.addEventListener('click', async () => {
+        priceError.textContent = '';
+        priceOutput.innerHTML = '<span class="spinner"></span>Loading price...';
+        try {
+            const metal = priceMetal.value;
+            const data = await fetchJson(`/api/prices/latest?metal=${encodeURIComponent(metal)}`);
+            priceOutput.innerHTML = `
+                <div class="success">
+                    ${data.metal} price: <strong>${formatInr(data.pricePerUnit)}</strong> per gram<br>
+                    Timestamp: ${data.timestamp}
+                </div>
+            `;
+        } catch (err) {
+            priceOutput.textContent = '';
+            priceError.textContent = 'Error loading price: ' + err.message;
+        }
+    });
+
+    // ====== BUY / SELL UI ======
+    const tradeMetal = document.getElementById('trade-metal');
+    const tradeQty = document.getElementById('trade-qty');
+    const buyBtn = document.getElementById('buy-btn');
+    const sellBtn = document.getElementById('sell-btn');
+    const tradeMsg = document.getElementById('trade-msg');
+
+    async function trade(type) {
+        tradeMsg.textContent = '';
+        tradeMsg.className = '';
+        const metal = tradeMetal.value;
+        const qty = parseFloat(tradeQty.value);
+        if (!qty || qty <= 0) {
+            tradeMsg.textContent = 'Enter a positive quantity.';
+            tradeMsg.className = 'error';
+            return;
+        }
+        if (!authToken) {
+            tradeMsg.textContent = 'Please login first.';
+            tradeMsg.className = 'error';
+            return;
+        }
+        try {
+            const data = await fetchJson(
+                `/api/portfolio/${type}?metal=${encodeURIComponent(metal)}&quantity=${qty}`,
+                { method: 'POST' }
+            );
+            tradeMsg.textContent = `${type.toUpperCase()} OK`;
+            tradeMsg.className = 'success';
+            await loadHoldings();
+            await loadSummary();
+        } catch (err) {
+            tradeMsg.textContent = 'Trade error: ' + err.message;
+            tradeMsg.className = 'error';
+        }
+    }
+
+    buyBtn.addEventListener('click', () => trade('buy'));
+    sellBtn.addEventListener('click', () => trade('sell'));
+
+    // ====== HOLDINGS UI (TABLE) ======
+    async function loadHoldings() {
+        if (!authToken) {
+            holdingsTbody.innerHTML = `
+                <tr><td colspan="3" class="small">Login to see your holdings.</td></tr>
+            `;
+            holdingsUpdated.textContent = '';
+            return;
+        }
+        try {
+            const data = await fetchJson('/api/portfolio/holdings');
+            if (!data || data.length === 0) {
+                holdingsTbody.innerHTML = `
+                    <tr><td colspan="3" class="small">No holdings yet. Buy some metals.</td></tr>
+                `;
+            } else {
+                holdingsTbody.innerHTML = '';
+                data.forEach(h => {
+                    const tr = document.createElement('tr');
+                    const qty = h.quantity ?? h.qty ?? 0;
+                    const avg = h.avgPricePerUnit ?? h.averagePricePerUnit;
+
+                    tr.innerHTML = `
+                        <td>${h.metal}</td>
+                        <td class="text-right">${formatNumber(qty)}</td>
+                        <td class="text-right">${formatInr(avg)}</td>
+                    `;
+                    holdingsTbody.appendChild(tr);
+                });
+            }
+            holdingsUpdated.textContent = 'Last updated at ' + nowTimeString();
+        } catch (err) {
+            holdingsTbody.innerHTML = `
+                <tr><td colspan="3" class="small error">Error: ${err.message}</td></tr>
+            `;
+            holdingsUpdated.textContent = '';
+        }
+    }
+
+    holdingsBtn.addEventListener('click', loadHoldings);
+
+    // ====== SUMMARY (PNL) UI ======
+    async function loadSummary() {
+        if (!authToken) {
+            summaryOverview.textContent = 'Login to see your portfolio summary.';
+            summaryDetailsTbody.innerHTML = `
+                <tr><td colspan="7" class="small">No data yet.</td></tr>
+            `;
+            summaryUpdated.textContent = '';
+            return;
+        }
+        summaryOverview.innerHTML = '<span class="spinner"></span>Loading summary...';
+        summaryDetailsTbody.innerHTML = `
+            <tr><td colspan="7" class="small">Loading...</td></tr>
+        `;
+        summaryUpdated.textContent = '';
+        try {
+            const data = await fetchJson('/api/portfolio/summary');
+
+            if (!data.metals || data.metals.length === 0) {
+                summaryOverview.innerHTML = `
+                    <div class="small">
+                        No holdings yet for this user. Buy some metals to see PNL.
+                    </div>
+                `;
+                summaryDetailsTbody.innerHTML = `
+                    <tr><td colspan="7" class="small">No data yet.</td></tr>
+                `;
+                summaryUpdated.textContent = 'Last updated at ' + nowTimeString();
+                return;
+            }
+
+            const totalPnlNum = Number(data.totalPnlAmount || 0);
+            const pnlClass = totalPnlNum >= 0 ? 'pnl-positive' : 'pnl-negative';
+
+            summaryOverview.innerHTML = `
+                <div>
+                    <div>Total Invested: <strong>${formatInr(data.totalInvested)}</strong></div>
+                    <div>Current Value: <strong>${formatInr(data.totalCurrentValue)}</strong></div>
+                    <div class="${pnlClass}">
+                        PNL: <strong>${formatInr(data.totalPnlAmount)}</strong>
+                        (${formatPercent(data.totalPnlPercent)})
+                    </div>
+                </div>
+            `;
+
+            summaryDetailsTbody.innerHTML = '';
+            data.metals.forEach(m => {
+                const tr = document.createElement('tr');
+                const pnlAmountNum = Number(m.pnlAmount || 0);
+                const metalPnlClass = pnlAmountNum >= 0 ? 'pnl-positive' : 'pnl-negative';
+
+                tr.innerHTML = `
+                    <td>${m.metal}</td>
+                    <td class="text-right">${formatNumber(m.quantity)}</td>
+                    <td class="text-right">${formatInr(m.avgPricePerUnit)}</td>
+                    <td class="text-right">${formatInr(m.currentPricePerUnit)}</td>
+                    <td class="text-right">${formatInr(m.investedValue)}</td>
+                    <td class="text-right">${formatInr(m.currentValue)}</td>
+                    <td class="text-right ${metalPnlClass}">
+                        ${formatInr(m.pnlAmount)} (${formatPercent(m.pnlPercent)})
+                    </td>
+                `;
+                summaryDetailsTbody.appendChild(tr);
+            });
+
+            summaryUpdated.textContent = 'Last updated at ' + nowTimeString();
+        } catch (err) {
+            summaryOverview.textContent = 'Error loading summary: ' + err.message;
+            summaryDetailsTbody.innerHTML = `
+                <tr><td colspan="7" class="small error">Error</td></tr>
+            `;
+            summaryUpdated.textContent = '';
+        }
+    }
+
+    summaryBtn.addEventListener('click', loadSummary);
+
+    // ====== INITIAL LOAD ======
+    loadStoredToken();
+    loadHoldings();
+    loadSummary();
+</script>
+</body>
+</html>
