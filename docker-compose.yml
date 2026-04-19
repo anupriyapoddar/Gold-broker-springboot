@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: goldbroker-postgres
+    environment:
+      POSTGRES_DB: goldbroker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: goldbroker-app
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/goldbroker
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      METAL_API_KEY: ac55feaea6c9637d81c3ed31b6f89eb7   # ✅ YOUR KEY
+    restart: always
+
+volumes:
+  postgres_data:
