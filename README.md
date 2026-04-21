@@ -5,6 +5,8 @@ The project provides secure REST APIs for user authentication, trading workflows
 
 This application was built to demonstrate backend engineering fundamentals, scalable architecture, and secure API design.
 
+live at: https://goldbroker-backend.onrender.com
+
 ---
 
 ## 📌 Project Overview
@@ -45,4 +47,6 @@ Recent improvements include:
 - Removed IDE-specific files (.idea, .vscode)
 - Improved project structure for scalability
 - Prepared for Docker + PostgreSQL integration
+
+
 
